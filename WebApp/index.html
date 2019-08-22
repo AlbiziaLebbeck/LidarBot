@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Lidar Bot Map</title>
+  
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md navbar-dark bg-primary mb-3">
+    <div class="container-fluid">
+        <h1 class="navbar-brand mr-3">LidarBot</h1>
+        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <!-- <div class="navbar-nav">
+                <a href="#" class="nav-item nav-link active">Home</a>
+                <a href="#" class="nav-item nav-link">Services</a>
+                <a href="#" class="nav-item nav-link">About</a>
+                <a href="#" class="nav-item nav-link">Contact</a>
+            </div> -->
+            <!-- <div class="navbar-nav ml-auto">
+                <a href="#" class="nav-item nav-link">Register</a>
+                <a href="#" class="nav-item nav-link">Login</a>
+            </div> -->
+        </div>
+    </div> 
+  </nav>
+
+  <div class="container-fluid">
+
+    <div class="row justify-content-center">
+      <div class="col-xs-12">
+        <canvas id="map" width="360" height="240" style="border:1px solid #000000;"></canvas>
+      </div>
+    </div>
+    
+    <div class="row justify-content-center">
+      <div class="col-xs-4">
+        <button class="fa fa-arrow-up fa-4x btn btn-primary mr-1" id="arrowUp" onclick="goUp()" data-placement="left" title="Forward"></button>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-xs-4">
+        <button class="fa fa-rotate-left fa-4x btn btn-primary mr-1"  onclick="turnLeft()" data-placement="left" title="Rotate Left"></button>
+      </div>
+
+      <div class="col-xs-4 p-1">
+        <!-- <span id='start_button' class="fa-stack fa-4x vcenter" onclick="startButton(event)" alt="Start">
+          <i id='mic-bg' class="fa fa-circle fa-stack-2x" style="color:#A8A8A8;"></i>
+          <i id='mic' class="fa fa-microphone fa-stack-1x fa-inverse"></i>
+          <i id='mic-slash' class="fa fa-microphone-slash fa-stack-1x fa-inverse" style="display:none;"></i>
+        </!-->
+        <button class="fa fa-stop fa-4x btn btn-primary mr-1"  onclick="stop()" data-placement="left" title="Rotate Right" ></button>
+      </div>
+
+      <div class="col-xs-4">
+        <button class="fa fa-rotate-right fa-4x  btn btn-primary mr-1"  onclick="turnRight()" data-placement="left" title="Rotate Right" ></button>
+      </div>
+
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-xs-4">
+        <button class="fa fa-arrow-left fa-4x btn btn-primary mr-1"  onclick="goLeft()" data-placement="left" title="Rotate Left"></button>
+      </div>
+          
+      <div class="col-xs-4">
+        <button class="fa fa-arrow-down fa-4x btn btn-primary mr-1" onclick="goDown()" data-placement="left" title="Back"></button>
+      </div>
+
+      <div class="col-xs-4">
+        <button class="fa fa-arrow-right fa-4x  btn btn-primary mr-1"  onclick="goRight()" data-placement="left" title="Rotate Right" ></button>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-xs-8 p-3">
+        <select id="selectRobot" class="browser-default custom-select">
+          <option value="/ldb01" selected>/ldb01</option>
+          <option value="/ldb02">/ldb02</option>
+          <option value="/ldb03">/ldb03</option>
+          <option value="/ldb04">/ldb04</option>
+          <option value="/ldb05">/ldb05</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xs-8">
+          <button id="connectBtn" class="btn btn-danger" data-placement="Connect" title="Connect">
+              <strong>Re-Connect</strong>
+          </button>
+        </div>
+      </div>
+
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  
+  <script>
+    var clientid = "ldb-remote-" + Math.random().toString(36).substr(2, 9);
+
+    var robotid = "/ldb01";
+
+    console.log("client-id:" + clientid);
+
+    var client = new Paho.MQTT.Client("103.20.207.171", 9001, clientid);
+
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+
+    client.connect({onSuccess:onConnect});
+
+    function onConnect() {
+      console.log("onConnect");
+      client.subscribe(robotid + "/mapdata"); // ubscribe
+
+      document.getElementById("connectBtn").innerHTML = "<strong>Connected</strong>";
+      document.getElementById("connectBtn").classList.remove("btn-danger");
+      document.getElementById("connectBtn").classList.add("btn-success");
+
+      document.getElementById("connectBtn").onclick = function () {
+        console.log("already connected");
+      };
+    }
+
+    function onConnectionLost(responseObject) {
+
+      document.getElementById("connectBtn").innerHTML = "<strong>Re-Connect</strong>";
+      document.getElementById("connectBtn").classList.add("btn-danger");
+      document.getElementById("connectBtn").classList.remove("btn-success");
+
+      document.getElementById("connectBtn").onclick = function () {
+        client.connect({onSuccess:onConnect});
+      };
+
+      if (responseObject.errorCode !== 0) {
+        console.log("onConnectionLost:"+responseObject.errorMessage);
+      }
+    }
+
+    function onMessageArrived(message) {
+      getMapData(message);
+    }
+
+    function getMapData (mapData) {
+
+      var payload = mapData.payloadBytes;
+      var length = payload.length;
+      //console.log("onMessageArrived:"+payload);
+
+      for (let i = 0;i < 45;i++) {
+
+        let angle = payload[4*i]*256 + payload[4*i+1];
+        let distance = payload[4*i+2]*256 + payload[4*i+3];
+        //console.log("angle:" + angle + " dist:" + distance);
+
+        let x = (80 + (distance/70)*Math.cos(3.14159*angle/180+0.13))*2;
+        let y = (100 + (distance/70)*Math.sin(3.14159*angle/180+0.13))*2;
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(oldX[angle],oldY[angle],2,2);
+
+        if (distance == 250) {
+          ctx.fillStyle = "#0000FF";
+        }
+        else {
+          ctx.fillStyle = "#FF0000";
+        }
+        ctx.fillRect(x,y,1,1);
+
+        oldX[angle] = x;
+        oldY[angle] = y;
+
+      }
+
+    }
+
+    $('#selectRobot').on('change', function() {
+      client.unsubscribe("/ldb01/mapdata");
+      client.unsubscribe("/ldb02/mapdata");
+      client.unsubscribe("/ldb03/mapdata");
+      client.unsubscribe("/ldb04/mapdata");
+      client.unsubscribe("/ldb05/mapdata");
+
+      robotid = $('#selectRobot').val();
+      client.subscribe(robotid + "/mapdata");
+      console.log(robotid + "/mapdata");
+
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0,0,360,240);
+    });
+
+    function goUp () {
+      robotid = $("#selectRobot").val();
+      console.log("go up");
+      message = new Paho.MQTT.Message("{\"wheel\":[0,6,0]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    function goDown () {
+      robotid = $("#selectRobot").val();
+      console.log("go down");
+      message = new Paho.MQTT.Message("{\"wheel\":[0,-6,0]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    function turnLeft () {
+      robotid = $("#selectRobot").val();
+      console.log("go left");
+      message = new Paho.MQTT.Message("{\"wheel\":[-1,0,0]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    function turnRight () {
+      robotid = $("#selectRobot").val();
+      console.log("go right");
+      message = new Paho.MQTT.Message("{\"wheel\":[1,0,0]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    function goLeft () {
+      robotid = $("#selectRobot").val();
+      console.log("go left");
+      message = new Paho.MQTT.Message("{\"wheel\":[-6,0,1]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    function goRight () {
+      robotid = $("#selectRobot").val();
+      console.log("go right");
+      message = new Paho.MQTT.Message("{\"wheel\":[6,0,1]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    function stop () {
+      robotid = $("#selectRobot").val();
+      console.log("stop");
+      message = new Paho.MQTT.Message("{\"wheel\":[0,0,0]}");
+      message.destinationName = robotid + "/control";
+      client.send(message);
+    }
+
+    var canvas = document.getElementById("map");
+    var ctx = canvas.getContext("2d");
+    
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0,0,360,240);
+
+    var oldX = new Uint16Array(360).fill(0);
+    var oldY = new Uint16Array(360).fill(0);
+  </script>
+        
+</body>
+</html>
+
