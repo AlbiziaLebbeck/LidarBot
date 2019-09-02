@@ -621,7 +621,7 @@ void LidarCar::GetData(void){
         case 9: angleOffset = r * 256; commandStatus = 10; break;
         case 10: angleOffset += r; commandStatus = 11;  break;
         case 11: startAngle = r * 256; commandStatus = 12; break;
-        case 12: startAngle += r; commandStatus = 13;  break;
+        case 12: startAngle += r; commandStatus = 13; Serial.println(startAngle*0.01);  break;
 
     default:
         if (commandStatus == ( 13 + 3 * dataLength)) //finish.
