@@ -6,11 +6,12 @@
 #include "rprtrack.h"
 #include "iic.h"
 
-#define ROBOT_ID   "/ldb05"
+#define ROBOT_ID   "/ldb01"
 
-#define WIFI_STA_NAME "LidarBot"
-#define WIFI_STA_PASS "lidarbot"
-
+//#define WIFI_STA_NAME "LidarBot"
+//#define WIFI_STA_PASS "lidarbot"
+#define WIFI_STA_NAME "MrPrukWiFi"
+#define WIFI_STA_PASS "12345678"
 
 #define MQTT_SERVER   "103.20.207.171"
 #define MQTT_PORT     1883
@@ -94,10 +95,11 @@ void loop() {
     }
   } else {
     mqtt.loop();
-    mqtt.publish(topic.c_str(), lidarcar.mapdata,180);
-  }
+    mqtt.publish(topic.c_str(), (uint8_t*)lidarcar.distance,360*4*sizeof(uint16_t));
 
-  
+    topic = String(ROBOT_ID) + String("/odom");
+    mqtt.publish(topic.c_str(), (uint8_t*)lidarcar.angleVelocity,4*sizeof(int));
+  } 
   
 }
 
@@ -115,14 +117,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   else{
     int data[3] = {jsonBuffer["wheel"][0],jsonBuffer["wheel"][1],jsonBuffer["wheel"][2]};
-
-    
-    Serial.print("data0:");
-    Serial.print(data[0]);
-    Serial.print(", data1:");
-    Serial.print(data[1]);
-    Serial.print(", data2:");
-    Serial.println(data[2]);
     
     lidarcar.ControlWheel(data[0], data[1], data[2]);
   }

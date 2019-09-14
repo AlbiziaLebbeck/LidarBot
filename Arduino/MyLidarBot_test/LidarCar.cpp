@@ -204,10 +204,10 @@ void LidarCar::ControlWheel(int8_t X, int8_t Y, byte A)// X, Y, A: -7 ~ 7
     wheelPowerD = controlMap[-Y + 7][14 - X - 7];
   }
 
-  angleVelocity[0] = velocityMap[wheelPowerA+7]; 
-  angleVelocity[1] = velocityMap[wheelPowerB+7];
-  angleVelocity[2] = velocityMap[wheelPowerC+7];
-  angleVelocity[3] = velocityMap[wheelPowerD+7];
+  angleVelocityA = velocityMap[wheelPowerA+7]; 
+  angleVelocityB = velocityMap[wheelPowerB+7];
+  angleVelocityC = velocityMap[wheelPowerC+7];
+  angleVelocityD = velocityMap[wheelPowerD+7];
    
   //通过串口下达指令
   Serial2.write(0xAA);
@@ -640,7 +640,12 @@ void LidarCar::GetData(void){
         {
           case 0: signalValue[ang] = r;  commandStatus++; break;
           case 1: temp = r * 256;  commandStatus++; break;
-          case 2: temp += r; distance[ang] = temp > 2 ? temp : 250;  commandStatus++; break;
+          case 2: 
+            temp += r;
+            ranges[(int)(commandStatus - 13)/3] = temp;
+            distance[ang] = temp > 2 ? temp : 250;  
+            commandStatus++; 
+            break;
         } break;
     }
   }

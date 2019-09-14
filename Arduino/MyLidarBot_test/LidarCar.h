@@ -32,7 +32,6 @@ class LidarCar {
    int count = 0;
    float last_error_line = 0;
    int contro_mode = 0;
-   int angleVelocity[4];
 
  private:
    void setLedColor(byte i, byte r, byte g, byte b);
@@ -42,6 +41,7 @@ class LidarCar {
    void setServo0Angle(uint8_t angle);
    void setServo1Angle(uint8_t angle);
    int MazaCom(float error_line,float left_line,float right_line,float front_line);
+   
  private:
    int last_line;
    int go_flag = 0;
@@ -50,16 +50,20 @@ class LidarCar {
    int Dis[180][2];
    int commandStatus;
    int ver;
+ public:
    uint16_t dataLength;
    int lidarSpeed;
    uint16_t angleOffset;
    uint16_t startAngle;
+   uint16_t ranges[60];
    uint16_t showAngle;
+   float angleVelocityA, angleVelocityB, angleVelocityC, angleVelocityD;
+ private:
    int packCount;
    uint8_t signalValue[360];
    uint16_t temp;
    int wheelPowerA, wheelPowerB, wheelPowerC, wheelPowerD;
-   int velocityMap[15] = {-589, -441, -353, -321, -252, -141, -45, 0, 45, 141, 252, 321, 353, 441, 589};
+   float velocityMap[15] = {-26.18, -19.63, -15.71, -14.28, -11.22, -6.28, -2.01, 0, 2.01, 6.28, 11.22, 14.28, 15.71, 19.63, 26.18};
    int controlMap[15][15] ={
   {  4,  4,  5,  5,  6,  6,  7,  7,  7,  7, 7, 7, 7, 7, 7},
   {  2,  3,  4,  4,  5,  5,  6,  6,  6,  6, 6, 6, 6, 6, 7},
