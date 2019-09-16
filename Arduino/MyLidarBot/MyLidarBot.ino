@@ -8,10 +8,10 @@
 
 #define ROBOT_ID   "/ldb01"
 
-//#define WIFI_STA_NAME "LidarBot"
-//#define WIFI_STA_PASS "lidarbot"
-#define WIFI_STA_NAME "MrPrukWiFi"
-#define WIFI_STA_PASS "12345678"
+#define WIFI_STA_NAME "LidarBot"
+#define WIFI_STA_PASS "lidarbot"
+//#define WIFI_STA_NAME "MrPrukWiFi"
+//#define WIFI_STA_PASS "12345678"
 
 #define MQTT_SERVER   "103.20.207.171"
 #define MQTT_PORT     1883
@@ -24,9 +24,10 @@ PubSubClient mqtt(client);
 
 extern const unsigned char gImage_logo[];
 
-unsigned long pub_map_time = millis() + 100;
+unsigned long pub_time = millis() + 100;
 
 void callback(char* topic, byte* payload, unsigned int length);
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -69,6 +70,8 @@ void setup() {
   
 }
 
+uint8_t pub_id = 0;
+
 void loop() {
   // put your main code here, to run repeatedly:
   M5.Lcd.setCursor(240, 1, 4);    
@@ -77,7 +80,7 @@ void loop() {
   lidarcar.MapDisplay();
   i2c.master_hangs();
 
-  String topic = String(ROBOT_ID) + String("/mapdata");
+  String topic = String(ROBOT_ID) + String("/sensor");
 
   if (mqtt.connected() == false) {
     lidarcar.ControlWheel(0, 0, 0);
@@ -95,10 +98,27 @@ void loop() {
     }
   } else {
     mqtt.loop();
-    mqtt.publish(topic.c_str(), (uint8_t*)lidarcar.distance,360*4*sizeof(uint16_t));
+    
+    if(millis() > pub_time){
 
-    topic = String(ROBOT_ID) + String("/odom");
-    mqtt.publish(topic.c_str(), (uint8_t*)lidarcar.angleVelocity,4*sizeof(int));
+      uint8_t pub_buffer[729];
+      pub_buffer[0] = pub_id;
+      pub_id = (pub_id + 1) % 128;
+      for (int i=0 ; i < 360 ; i++) {
+        pub_buffer[i*2+2] = (lidarcar.distance[i] >> 8);
+        pub_buffer[i*2+1] = (lidarcar.distance[i] & 0xFF);
+      }
+
+      for (int i=0 ; i < 4 ; i++) {
+        pub_buffer[i*2+722] = (lidarcar.angleVelocity[i] >> 8);
+        pub_buffer[i*2+721] = (lidarcar.angleVelocity[i] & 0xFF);
+      }
+      
+      if(mqtt.publish(topic.c_str(), pub_buffer,729,true))
+        Serial.println("SendOK");
+
+      pub_time = millis() + 100;
+    }
   } 
   
 }
